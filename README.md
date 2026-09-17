@@ -5,7 +5,11 @@
 加密壳，还原成通用播放器能直接播的原始音频。
 
 > **当前状态**：`v1.2.0` · 仅 Windows 10 / 11
-> 源码与安装包**暂未发布**，本仓库先行公开项目说明与使用文档。
+>
+> 📦 **下载安装包** → [Releases · v1.2.0](https://github.com/senlip/FormatMaster/releases/latest)
+>
+> 源码已开源。仓库**不含** ffmpeg 二进制、构建产物与第三方参考实现，
+> 完整排除规则见 [`.gitignore`](.gitignore)。
 
 ---
 
@@ -57,14 +61,25 @@
 
 ## 快速开始
 
-### 源码运行（当前唯一方式）
+### 安装包（推荐）
+
+到 [Releases](https://github.com/senlip/FormatMaster/releases/latest) 下载
+`FormatMaster_Setup_v1.2.0.exe`（约 105 MB），双击安装。已装旧版可直接覆盖。
+
+安装包**自带 FFmpeg**，无需另行配置。
+
+### 源码运行
 
 ```bat
+git clone https://github.com/senlip/FormatMaster
+cd FormatMaster
 pip install -r requirements.txt
 python app\main.py
 ```
 
-FFmpeg 二进制已放在 `tools\ffmpeg\bin\`，无需另行安装。
+> ⚠️ **本仓库不含 `tools\ffmpeg\`**（第三方 GPL 二进制，约 158 MB）。
+> 源码运行要处理视频 / 音频时，需自行下载 ffmpeg 与 ffprobe 放进
+> `tools\ffmpeg\bin\`；图像、文档、压缩包、加密音乐解锁这四类不依赖它。
 
 **环境要求**
 
@@ -75,16 +90,22 @@ FFmpeg 二进制已放在 `tools\ffmpeg\bin\`，无需另行安装。
 | 界面 | PySide6 |
 | 可选 | 本机装有 WPS 或 Microsoft Office → 文档转换启用高保真通道 |
 
-### 安装包
-
-安装包与源码**暂未发布**，目前处于内测阶段。想自己出包：
+### 自己出包
 
 ```bat
 python build\build.py
 ```
 
-会依次完成：生成图标 → PyInstaller 打包 → Inno Setup 编译安装包。
-需要本机具备 PyInstaller 与 Inno Setup。
+会依次完成：生成图标 → PyInstaller 打包 → **冻结产物自检** → Inno Setup 编译安装包。
+自检不通过会直接中断构建。需要本机具备 PyInstaller 与 Inno Setup
+（Inno Setup 放在 `build\tools\`，未入库）。
+
+出完包用同一个脚本发版：
+
+```bat
+python tools\gh_release.py --tag v1.2.1 ^
+    --asset F://project//FormatMaster_Setup_v1.2.1.exe
+```
 
 ---
 
@@ -200,10 +221,14 @@ FormatMaster/
 │   │   └── engines/                引擎适配器（ffmpeg / image / doc / archive）
 │   └── ui/                         主窗口、自绘组件、主题
 ├── tools/
-│   ├── ffmpeg/bin/                 ffmpeg.exe / ffprobe.exe
-│   └── diagnose_encrypted.py       加密文件诊断（只读）
+│   ├── ffmpeg/bin/                 ffmpeg.exe / ffprobe.exe ← 未入库，自行获取
+│   ├── diagnose_encrypted.py       加密文件诊断（只读）
+│   ├── try_doc.py                  手动试跑文档转换（打印走哪条通道 + 产物体检）
+│   ├── shot_ui.py / ui_probe.py    界面离屏截图与像素探针（改版前后对比）
+│   └── gh_release.py               发布 GitHub Release 并上传安装包
 ├── tests/                          五套自测 + 官方金标向量
-└── build/                          PyInstaller / Inno Setup 配置与参考实现
+├── docs/                           问题修复记录、界面截图、发行说明
+└── build/                          PyInstaller 配置 / 打包脚本 / Inno Setup 脚本
 ```
 
 设计上做了两处"加格式不改界面"：新增格式只要在 `formats.py` 加一行，
